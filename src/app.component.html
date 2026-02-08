@@ -1,0 +1,412 @@
+<div class="min-h-screen flex flex-col md:flex-row max-w-7xl mx-auto">
+  
+  <!-- SIDEBAR / NAV -->
+  <aside class="w-full md:w-64 border-r border-[#1a2a3a] bg-[#05050a]/90 backdrop-blur flex flex-col p-4 z-20 sticky top-0 md:h-screen">
+    <div class="mb-8 flex items-center space-x-2">
+      <div class="w-3 h-3 bg-[#00f3ff] rounded-full shadow-[0_0_10px_#00f3ff]"></div>
+      <h1 class="font-sci-fi text-2xl tracking-widest text-white">CORTEX</h1>
+    </div>
+
+    <nav class="space-y-2 flex-1">
+      <button 
+        (click)="setView('dashboard')" 
+        class="w-full text-left px-4 py-3 rounded border border-transparent hover:border-[#00f3ff] hover:bg-[#00f3ff]/10 transition-all duration-300 flex items-center"
+        [class.bg-[#00f3ff]_10]="activeView() === 'dashboard'"
+        [class.border-[#00f3ff]]="activeView() === 'dashboard'">
+        <span class="mr-3 text-lg">▣</span> OVERVIEW
+      </button>
+      
+      <button 
+        (click)="setView('add')" 
+        class="w-full text-left px-4 py-3 rounded border border-transparent hover:border-[#bc13fe] hover:bg-[#bc13fe]/10 transition-all duration-300 flex items-center"
+        [class.bg-[#bc13fe]_10]="activeView() === 'add'"
+        [class.border-[#bc13fe]]="activeView() === 'add'">
+        <span class="mr-3 text-lg">⊕</span> INJECT DATA
+      </button>
+    </nav>
+
+    <div class="mt-auto pt-6 border-t border-[#1a2a3a]">
+      <div class="text-xs text-gray-500 font-mono">SYSTEM STATUS: OPTIMAL</div>
+      <div class="text-xs text-[#00f3ff] font-mono mt-1">v3.2.0 [ARCHIVES_ENABLED]</div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+    
+    <!-- HEADER -->
+    <header class="mb-8 flex justify-between items-end border-b border-[#1a2a3a] pb-4">
+      <div>
+        <h2 class="font-sci-fi text-xl text-gray-400">
+          @if (activeView() === 'dashboard') { RETENTION MATRIX }
+          @else if (activeView() === 'add') { NEURAL UPLINK }
+          @else { DATA PACKET DETAILS }
+        </h2>
+        <div class="h-1 w-20 bg-gradient-to-r from-[#00f3ff] to-transparent mt-1"></div>
+      </div>
+      <div class="font-mono text-sm text-[#00f3ff]">
+        {{ upcomingReviews().length }} PENDING OPS
+      </div>
+    </header>
+
+    <!-- VIEWS -->
+    
+    <!-- DASHBOARD VIEW -->
+    @if (activeView() === 'dashboard') {
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- UPCOMING LIST -->
+        <div class="lg:col-span-2 space-y-6">
+          
+          <!-- WORKLOAD & HEATMAP GRID -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- WORKLOAD MONITOR -->
+              <div class="bg-[#0a0f18] border border-[#1a2a3a] p-4 rounded relative">
+                 <div class="text-[10px] font-sci-fi text-gray-500 mb-4 tracking-widest flex justify-between">
+                    <span>NEURAL BANDWIDTH (7 DAYS)</span>
+                 </div>
+                 <div class="flex items-end justify-between h-24 space-x-2">
+                    @for (day of weeklyWorkload(); track day.date) {
+                      <div class="flex flex-col items-center flex-1 h-full justify-end group">
+                         @if (day.count > 0) {
+                            <div class="w-full rounded-t transition-all duration-500 relative"
+                                 [style.height.%]="(day.count / 5) * 100"
+                                 [class.bg-[#bc13fe]]="day.isHeavy"
+                                 [class.bg-[#00f3ff]]="!day.isHeavy && day.count > 0">
+                               <div class="absolute -top-5 w-full text-center text-[10px] text-white opacity-0 group-hover:opacity-100">{{ day.count }}</div>
+                            </div>
+                         } @else {
+                            <div class="w-full h-1 bg-[#1a2a3a] rounded-full"></div>
+                         }
+                         <div class="mt-2 text-[8px] font-mono text-gray-500 uppercase">{{ day.dayName }}</div>
+                      </div>
+                    }
+                 </div>
+              </div>
+
+              <!-- HEATMAP MONITOR -->
+              <div class="bg-[#0a0f18] border border-[#1a2a3a] p-4 rounded relative flex flex-col">
+                  <div class="text-[10px] font-sci-fi text-gray-500 mb-2 tracking-widest flex justify-between">
+                    <span>TEMPORAL CONSISTENCY (60 DAYS)</span>
+                    <span class="text-[#00f3ff]">HABIT LOG</span>
+                  </div>
+                  <div class="flex-1 flex flex-wrap content-start gap-[2px]">
+                     @for (cell of activityHeatmap(); track cell.date) {
+                       <div class="w-2 h-2 rounded-[1px] transition-colors hover:scale-150"
+                            [title]="cell.date + ': ' + cell.count + ' reviews'"
+                            [class.bg-[#1a2a3a]]="cell.intensity === 0"
+                            [class.bg-[#00f3ff]_30]="cell.intensity === 1"
+                            [class.bg-[#00f3ff]_60]="cell.intensity === 2"
+                            [class.bg-[#00f3ff]]="cell.intensity === 3"
+                            [class.bg-[#bc13fe]]="cell.intensity === 4">
+                       </div>
+                     }
+                  </div>
+              </div>
+          </div>
+
+          <h3 class="font-sci-fi text-lg text-white flex items-center">
+            <span class="w-2 h-2 bg-[#bc13fe] mr-2"></span> IMMINENT REVIEWS
+          </h3>
+          
+          @if (upcomingReviews().length === 0) {
+            <div class="p-8 border border-dashed border-gray-800 rounded text-center text-gray-500 font-mono">
+              NO OPERATIONS SCHEDULED. REST MODE ACTIVE.
+            </div>
+          }
+
+          @for (review of upcomingReviews(); track review.topicId) {
+            <div class="group relative bg-[#0a0f18] border border-[#1a2a3a] p-4 rounded hover:border-[#00f3ff] transition-all cursor-pointer"
+                 (click)="setView('details', review.topicId)">
+              <div class="absolute inset-0 bg-[#00f3ff]/5 opacity-0 group-hover:opacity-100 transition-opacity rounded"></div>
+              
+              <div class="flex justify-between items-center relative z-10">
+                <div>
+                  <div class="text-sm text-gray-400 font-mono mb-1">
+                    Due: {{ formatDate(review.date) }}
+                    @if (review.type === 'final') {
+                       <span class="ml-2 text-[#bc13fe] animate-pulse font-bold">⚠ FINAL PREP</span>
+                    }
+                    @if (review.type === 'recovery') {
+                       <span class="ml-2 text-red-400 font-bold">⚠ RECOVERY</span>
+                    }
+                  </div>
+                  <div class="text-lg font-bold text-white tracking-wide">{{ review.topicName }}</div>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                   @if (review.daysAway <= 0) {
+                      <span class="px-2 py-1 bg-red-900/30 text-red-400 text-xs border border-red-900 rounded animate-pulse">CRITICAL</span>
+                   } @else {
+                      <span class="px-2 py-1 bg-[#1a2a3a] text-[#00f3ff] text-xs rounded border border-[#00f3ff]/20">T-minus {{ review.daysAway }}d</span>
+                   }
+                   <button class="w-8 h-8 rounded-full border border-[#1a2a3a] hover:bg-[#00f3ff] hover:text-black flex items-center justify-center transition-colors">
+                     ➔
+                   </button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- STATS / TOPIC SUMMARY -->
+        <div class="space-y-6">
+          <div class="bg-[#0a0f18] border border-[#1a2a3a] p-5 rounded relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-16 h-16 bg-[#00f3ff]/10 rounded-bl-full"></div>
+            <h3 class="text-white font-sci-fi mb-4">ACTIVE PACKETS</h3>
+            
+            <div class="space-y-3">
+              @for (topic of topics(); track topic.id) {
+                <div class="flex justify-between items-center text-sm border-b border-gray-900 pb-2 cursor-pointer hover:text-[#00f3ff]"
+                     (click)="setView('details', topic.id)">
+                  <span class="truncate max-w-[150px]">{{ topic.name }}</span>
+                  <div class="text-right">
+                    @if (topic.examDate) {
+                      <div class="text-[10px] text-[#bc13fe]">TARGET LOCKED</div>
+                    }
+                    <span class="font-mono text-gray-500">Lv.{{ topic.complexity }}</span>
+                  </div>
+                </div>
+              }
+              @if (topics().length === 0) {
+                <div class="text-xs text-gray-600">Database Empty.</div>
+              }
+            </div>
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- ADD TOPIC VIEW -->
+    @if (activeView() === 'add') {
+      <div class="max-w-2xl mx-auto">
+        <div class="bg-[#0a0f18] border border-[#00f3ff]/30 p-8 rounded-lg shadow-[0_0_30px_rgba(0,243,255,0.05)] relative">
+          <!-- Decorators -->
+          <div class="absolute top-0 left-0 w-2 h-2 bg-[#00f3ff]"></div>
+          <div class="absolute top-0 right-0 w-2 h-2 bg-[#00f3ff]"></div>
+          <div class="absolute bottom-0 left-0 w-2 h-2 bg-[#00f3ff]"></div>
+          <div class="absolute bottom-0 right-0 w-2 h-2 bg-[#00f3ff]"></div>
+
+          <h3 class="font-sci-fi text-2xl text-white mb-6 text-center">INITIALIZE DATA PACKET</h3>
+
+          <div class="space-y-6">
+            <div>
+              <label class="block text-[#00f3ff] text-xs font-mono mb-2 tracking-widest">TOPIC DESIGNATION</label>
+              <input 
+                [formControl]="newTopicName"
+                type="text" 
+                class="w-full bg-[#05050a] border border-[#1a2a3a] text-white p-4 focus:border-[#00f3ff] focus:outline-none transition-colors font-mono"
+                placeholder="e.g. Molecular Biology, Advanced Calculus...">
+            </div>
+
+            <div>
+              <label class="block text-[#bc13fe] text-xs font-mono mb-2 tracking-widest">TARGET / EXAM DATE (OPTIONAL)</label>
+              <input 
+                [formControl]="newTopicDate"
+                [min]="minDate"
+                type="date" 
+                class="w-full bg-[#05050a] border border-[#1a2a3a] text-white p-4 focus:border-[#bc13fe] focus:outline-none transition-colors font-mono [&::-webkit-calendar-picker-indicator]:invert">
+               <p class="text-gray-600 text-xs mt-1">If specified, retention algorithm will prioritize recall for this date.</p>
+            </div>
+
+            <div>
+              <label class="block text-[#00f3ff] text-xs font-mono mb-2 tracking-widest">CONTEXTUAL PARAMETERS</label>
+              <textarea 
+                [formControl]="newTopicContext"
+                rows="3"
+                class="w-full bg-[#05050a] border border-[#1a2a3a] text-white p-4 focus:border-[#00f3ff] focus:outline-none transition-colors font-mono text-sm"
+                placeholder="Providing context helps the AI estimate complexity..."></textarea>
+            </div>
+
+            <button 
+              (click)="analyzeAndAddTopic()"
+              [disabled]="isLoading() || newTopicName.invalid"
+              class="w-full bg-[#00f3ff]/10 border border-[#00f3ff] text-[#00f3ff] py-4 font-sci-fi font-bold tracking-widest hover:bg-[#00f3ff] hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group">
+              
+              @if (isLoading()) {
+                <span class="animate-pulse">ANALYZING NEURAL PATHWAYS...</span>
+              } @else {
+                <span class="relative z-10">INITIATE UPLINK</span>
+                <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- DETAILS VIEW -->
+    @if (activeView() === 'details' && selectedTopic()) {
+      <div class="space-y-6 animate-fade-in">
+        
+        <!-- Header Info -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="md:col-span-2 space-y-4">
+             <!-- MAIN CARD -->
+             <div class="bg-[#0a0f18] border border-[#1a2a3a] p-6 rounded relative">
+               <button class="absolute top-4 right-4 text-red-500 hover:text-red-400 text-xs font-mono border border-red-900 bg-red-900/10 px-2 py-1"
+                       (click)="deleteTopic(selectedTopic()!.id)">
+                 PURGE
+               </button>
+               <h2 class="text-3xl text-white font-sci-fi mb-2">{{ selectedTopic()?.name }}</h2>
+               <p class="text-[#00f3ff] font-mono text-sm mb-4">{{ selectedTopic()?.summary }}</p>
+               
+               <div class="flex items-center space-x-4 mb-4">
+                  @if (selectedTopic()?.examDate) {
+                    <div class="inline-flex items-center space-x-2 bg-[#bc13fe]/10 border border-[#bc13fe] px-3 py-1 rounded text-[#bc13fe]">
+                      <span class="text-xs font-bold tracking-wider">TARGET: {{ formatDate(selectedTopic()!.examDate!) }}</span>
+                      <span class="w-px h-3 bg-[#bc13fe]/50"></span>
+                      <span class="text-xs font-mono">{{ getDaysUntil(selectedTopic()!.examDate) }}</span>
+                    </div>
+                  }
+                  <!-- Mastery Badge -->
+                  <div class="inline-flex items-center space-x-2 bg-[#00f3ff]/10 border border-[#00f3ff] px-3 py-1 rounded text-[#00f3ff]">
+                      <span class="text-xs font-bold tracking-wider">SYNAPTIC INTEGRITY</span>
+                      <span class="w-px h-3 bg-[#00f3ff]/50"></span>
+                      <span class="text-xs font-mono">{{ selectedTopic()?.mastery }}%</span>
+                  </div>
+               </div>
+
+               <div class="flex flex-wrap gap-2 mb-6">
+                  @for (sub of selectedTopic()?.subtopics; track sub) {
+                    <span class="px-2 py-1 bg-[#1a2a3a] border border-[#bc13fe]/30 text-gray-300 text-xs font-mono rounded">
+                      {{ sub }}
+                    </span>
+                  }
+               </div>
+
+               <!-- AI ADVICE BLOCK -->
+               <div class="mt-4 p-3 bg-[#1a2a3a]/50 border-l-2 border-[#00f3ff] text-xs font-mono text-gray-400">
+                  <span class="text-[#00f3ff] font-bold mr-2">AI STRATEGIST:</span>
+                  {{ getAdvice(selectedTopic()!) }}
+               </div>
+             </div>
+             
+             <!-- NEURAL ARCHIVES (NOTES) -->
+             <div class="bg-[#0a0f18] border border-[#1a2a3a] p-1 rounded relative group focus-within:border-[#00f3ff]">
+               <div class="absolute -top-3 left-4 bg-[#0a0f18] px-2 text-[10px] text-[#00f3ff] font-sci-fi tracking-widest">NEURAL ARCHIVES</div>
+               <textarea 
+                 [value]="selectedTopic()?.notes || ''"
+                 (input)="updateNotes(selectedTopic()!.id, $event)"
+                 class="w-full bg-transparent text-gray-300 font-mono text-sm p-4 h-32 focus:outline-none resize-none placeholder-gray-700"
+                 placeholder="// Enter field notes, mnemonics, or external resource links here..."></textarea>
+             </div>
+          </div>
+
+          <!-- CHART COLUMN -->
+          <div class="bg-[#0a0f18] border border-[#1a2a3a] p-6 rounded flex flex-col justify-center items-center relative overflow-hidden">
+             <div class="absolute inset-0 bg-gradient-to-b from-transparent to-[#00f3ff]/5"></div>
+             <div class="text-4xl font-bold text-white mb-1 font-mono">{{ selectedTopic()?.complexity }}<span class="text-sm text-gray-500">/10</span></div>
+             <div class="text-[#00f3ff] text-xs tracking-widest font-sci-fi">COMPLEXITY RATING</div>
+             
+             <div class="mt-4 w-full">
+               <app-neural-chart [complexity]="selectedTopic()!.complexity"></app-neural-chart>
+               <div class="text-center text-[10px] text-gray-500 mt-1">PROJECTED RETENTION DECAY</div>
+             </div>
+          </div>
+        </div>
+
+        <!-- Schedule -->
+        <div class="bg-[#0a0f18] border border-[#1a2a3a] rounded p-6">
+           <h3 class="font-sci-fi text-lg text-white mb-6">SPACED REPETITION SEQUENCE</h3>
+           
+           <div class="relative">
+              <!-- Line -->
+              <div class="absolute left-4 top-0 bottom-0 w-px bg-gradient-to-b from-[#00f3ff] to-[#1a2a3a]"></div>
+
+              <div class="space-y-6">
+                @for (session of selectedTopic()?.reviews; track session.date) {
+                  <div class="relative pl-12">
+                    <!-- Dot -->
+                    <div class="absolute left-[13px] top-1.5 w-2 h-2 rounded-full border"
+                         [class.bg-[#00f3ff]]="session.completed && session.type !== 'final' && session.type !== 'recovery'"
+                         [class.bg-[#bc13fe]]="session.completed && session.type === 'final'"
+                         [class.bg-red-500]="session.type === 'recovery'"
+                         [class.bg-[#1a2a3a]]="!session.completed"
+                         [class.border-[#05050a]]="session.type !== 'final'"
+                         [class.border-[#bc13fe]]="session.type === 'final'"
+                         [class.border-red-500]="session.type === 'recovery'"
+                         [class.shadow-[0_0_8px_#00f3ff]]="session.completed && session.type !== 'final'"
+                         [class.shadow-[0_0_12px_#bc13fe]]="session.type === 'final'">
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 rounded border transition-all"
+                         [class.border-[#00f3ff]]="session.completed && session.type !== 'final' && session.type !== 'recovery'"
+                         [class.bg-[#00f3ff]_5]="session.completed && session.type !== 'final' && session.type !== 'recovery'"
+                         [class.border-[#bc13fe]]="session.type === 'final'"
+                         [class.bg-[#bc13fe]_10]="session.type === 'final'"
+                         [class.border-red-900]="session.type === 'recovery'"
+                         [class.bg-red-900_10]="session.type === 'recovery'"
+                         [class.border-[#1a2a3a]]="!session.completed && session.type !== 'final' && session.type !== 'recovery'"
+                         [class.opacity-50]="!session.completed && session !== selectedTopic()?.reviews![0] && session.type !== 'final'">
+                      
+                      <div class="mb-2 sm:mb-0">
+                        <div class="text-white font-mono flex items-center">
+                          {{ formatDate(session.date) }}
+                          @if (session.type === 'final') {
+                            <span class="ml-2 px-1.5 py-0.5 bg-[#bc13fe] text-black text-[10px] font-bold rounded">FINAL</span>
+                          }
+                          @if (session.type === 'recovery') {
+                            <span class="ml-2 px-1.5 py-0.5 bg-red-500 text-black text-[10px] font-bold rounded">RECOVERY</span>
+                          }
+                        </div>
+                        <div class="text-xs text-gray-500">
+                          @if (session.type === 'initial') { Initial Download }
+                          @else if (session.type === 'final') { Consolidation & Recall Optimization }
+                          @else if (session.type === 'recovery') { Emergency Reinforcement }
+                          @else { Reinforcement Interval: {{ session.interval }} days }
+                        </div>
+                      </div>
+
+                      @if (!session.completed) {
+                         <!-- NEW FEEDBACK BUTTONS -->
+                         <div class="flex space-x-2">
+                           <button 
+                             (click)="markReviewComplete(selectedTopic()!.id, session.date, 'hard')"
+                             class="px-3 py-1 text-[10px] border border-red-800 text-red-500 hover:bg-red-900 hover:text-white transition-colors font-bold tracking-wide rounded"
+                             title="Trigger Emergency Review">
+                             GLITCH
+                           </button>
+                           <button 
+                             (click)="markReviewComplete(selectedTopic()!.id, session.date, 'good')"
+                             class="px-3 py-1 text-[10px] border border-[#00f3ff] text-[#00f3ff] hover:bg-[#00f3ff] hover:text-black transition-colors font-bold tracking-wide rounded">
+                             STABLE
+                           </button>
+                           @if (session.type !== 'final') {
+                             <button 
+                               (click)="markReviewComplete(selectedTopic()!.id, session.date, 'easy')"
+                               class="px-3 py-1 text-[10px] border border-[#bc13fe] text-[#bc13fe] hover:bg-[#bc13fe] hover:text-black transition-colors font-bold tracking-wide rounded"
+                               title="Skip Ahead (Extend next interval)">
+                               OPTIMIZED
+                             </button>
+                           }
+                         </div>
+                      } @else {
+                        <div class="flex items-center space-x-2">
+                          @if (session.rating === 'hard') {
+                            <span class="text-red-500 text-xs font-mono border border-red-500 px-1 rounded">GLITCH DETECTED</span>
+                          }
+                          @if (session.rating === 'easy') {
+                            <span class="text-[#bc13fe] text-xs font-mono border border-[#bc13fe] px-1 rounded">OPTIMIZED</span>
+                          }
+                          <span class="text-xs font-mono flex items-center"
+                                [class.text-[#00f3ff]]="!session.rating || session.rating === 'good'"
+                                [class.text-red-500]="session.rating === 'hard'"
+                                [class.text-[#bc13fe]]="session.rating === 'easy'">
+                            <span class="mr-1">✓</span> SYNCHRONIZED
+                          </span>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+           </div>
+        </div>
+
+      </div>
+    }
+
+  </main>
+</div>

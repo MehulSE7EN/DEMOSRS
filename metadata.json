@@ -1,0 +1,5 @@
+{
+  "name": "Cortex: Spaced Repetition Planner",
+  "description": "A sci-fi themed, AI-powered spaced repetition planning tool. It uses Gemini to analyze study topics and generate scientifically optimized review schedules based on complexity and information density.",
+  "requestFramePermissions": []
+}
